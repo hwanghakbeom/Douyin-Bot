@@ -17,6 +17,7 @@ def open_accordant_config():
     调用配置文件
     """
     screen_size = _get_screen_size()
+    print("SCREEN SIZE " + screen_size)
     config_file = "{path}/config/{screen_size}/config.json".format(
         path=sys.path[0],
         screen_size=screen_size

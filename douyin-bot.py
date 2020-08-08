@@ -4,6 +4,11 @@ import random
 import time
 from PIL import Image
 import argparse
+import os.path
+import pickle
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 
 if sys.version_info.major != 3:
     print('Please run under Python3')
@@ -103,6 +108,7 @@ def thumbs_up():
         x=config['star_bottom']['x'] + _random_bias(10),
         y=config['star_bottom']['y'] + _random_bias(10)
     )
+    print(config['screen_size'])
     adb.run(cmd)
     time.sleep(0.5)
 
@@ -116,8 +122,12 @@ def tap(x, y):
 
 
 def auto_reply():
+    return
+    msg = "感谢您的精彩视频"
 
-    msg = "垆边人似月，皓腕凝霜雪。就在刚刚，我的心动了一下，小姐姐你好可爱呀_Powered_By_Python"
+    #msgList = [111,222,333,444,555]
+    #print("random item from list is: ", random.choice(msgList))
+    #msg = random.choice(msgList)
 
     # 点击右侧评论按钮
     tap(config['comment_bottom']['x'], config['comment_bottom']['y'])
@@ -158,6 +168,47 @@ def main():
 
     cmd_args = parser()
 
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+    SAMPLE_SPREADSHEET_ID = '1RePp_f8FqGBEotcK0TscFo4L5lwPHBypsjzJnJJJLU8'
+    SAMPLE_RANGE_NAME = 'Sheet1!A2:A4'
+
+    creds = None
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+    service = build('sheets', 'v4', credentials=creds)
+    sheet = service.spreadsheets()
+    result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                                range=SAMPLE_RANGE_NAME).execute()
+    values = result.get('values', [])
+
+    if not values:
+        print('No data found.')
+    else:
+        print('Name, Major:')
+        for row in values:
+            # Print columns A and E, which correspond to indices 0 and 4.
+            print('%s' % (row[0]))
+
+    #msgList = getfrom google spreadsheet
+
+    print(config)
+
+    while True:
+        thumbs_up()
+        time.sleep(1)
+        
     while True:
         next_page()
 
@@ -206,6 +257,7 @@ def main():
                 follow_user()
 
                 if cmd_args['reply']:
+
                     auto_reply()
 
         else:
