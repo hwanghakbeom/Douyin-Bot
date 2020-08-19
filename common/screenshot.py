@@ -15,16 +15,18 @@ except Exception as ex:
     print('请将脚本放在项目根目录中运行')
     print('请检查项目根目录中的 common 文件夹是否存在')
     exit(1)
-adb = auto_adb()
+
 # SCREENSHOT_WAY 是截图方法，经过 check_screenshot 后，会自动递减，不需手动修改
 SCREENSHOT_WAY = 3
 
 
-def pull_screenshot():
+def pull_screenshot(device):
     """
     获取屏幕截图，目前有 0 1 2 3 四种方法，未来添加新的平台监测方法时，
     可根据效率及适用性由高到低排序
     """
+    adb = auto_adb()
+    adb.set_device(device)
     global SCREENSHOT_WAY
     if 1 <= SCREENSHOT_WAY <= 3:
         process = subprocess.Popen(
@@ -42,9 +44,9 @@ def pull_screenshot():
         return Image.open('./autojump.png')
 
 
-def check_screenshot():
+def check_screenshot(device):
     """
-    检查获取截图的方式
+    Check how to take screenshots
     """
     global SCREENSHOT_WAY
     if os.path.isfile('autojump.png'):
@@ -53,13 +55,13 @@ def check_screenshot():
         except Exception:
             pass
     if SCREENSHOT_WAY < 0:
-        print('暂不支持当前设备')
+        print('The current device is not currently supported')
         sys.exit()
     try:
-        im = pull_screenshot()
+        im = pull_screenshot(device)
         im.load()
         im.close()
         print('采用方式 {} 获取截图'.format(SCREENSHOT_WAY))
     except Exception:
         SCREENSHOT_WAY -= 1
-        check_screenshot()
+        check_screenshot(device)

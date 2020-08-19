@@ -9,21 +9,18 @@ import re
 
 from common.auto_adb import auto_adb
 
-adb = auto_adb()
 
-
-def open_accordant_config():
+def open_accordant_config(device):
     """
-    调用配置文件
+    Call configuration file
     """
-    screen_size = _get_screen_size()
-    print("SCREEN SIZE " + screen_size)
+    screen_size = _get_screen_size(device)
     config_file = "{path}/config/{screen_size}/config.json".format(
         path=sys.path[0],
         screen_size=screen_size
     )
 
-    # 优先获取执行文件目录的配置文件
+    # Get the configuration file of the executable file directory first
     here = sys.path[0]
     for file in os.listdir(here):
         if re.match(r'(.+)\.json', file):
@@ -32,10 +29,10 @@ def open_accordant_config():
                 print("Load config file from {}".format(file_name))
                 return json.load(f)
 
-    # 根据分辨率查找配置文件
+    # Find profile based on resolution
     if os.path.exists(config_file):
         with open(config_file, 'r') as f:
-            print("正在从 {} 加载配置文件".format(config_file))
+            print("From {} Load configuration file".format(config_file))
             return json.load(f)
     else:
         with open('{}/config/default.json'.format(sys.path[0]), 'r') as f:
@@ -43,10 +40,10 @@ def open_accordant_config():
             return json.load(f)
 
 
-def _get_screen_size():
-    """
-    获取手机屏幕大小
-    """
+def _get_screen_size(device):
+
+    adb = auto_adb()
+    adb.set_device(device)
     size_str = adb.get_screen()
     m = re.search(r'(\d+)x(\d+)', size_str)
     if m:
